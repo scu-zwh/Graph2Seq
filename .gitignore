@@ -1,0 +1,111 @@
+# ------------------------------
+# Python cache / 编译缓存
+# ------------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.pkl
+*.p
+*.cpython-*
+
+# ------------------------------
+# Virtual environments / 虚拟环境
+# ------------------------------
+env/
+venv/
+.venv/
+*.egg-info/
+pip-wheel-metadata/
+.python-version
+
+# Conda environment metadata
+conda-meta/
+.env
+
+# ------------------------------
+# Logs / 日志
+# ------------------------------
+*.log
+logs/
+wandb/
+
+# ------------------------------
+# Dataset / 数据集
+# ------------------------------
+data/
+datasets/
+*.h5
+*.pt
+*.npy
+*.npz
+*.pickle
+
+# Keep dataset config files
+!data/*.txt
+!*/train_*.txt
+!*/val_*.txt
+!*/test_*.txt
+
+# ------------------------------
+# Model checkpoints / 模型权重
+# ------------------------------
+checkpoints/
+*.ckpt
+*.pt
+*.pth
+*.bin
+
+# ------------------------------
+# Jupyter / Notebook
+# ------------------------------
+.ipynb_checkpoints
+*.ipynb
+
+# ------------------------------
+# IDE settings / 编辑器配置
+# ------------------------------
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# ------------------------------
+# OS 系统文件
+# ------------------------------
+.DS_Store
+Thumbs.db
+
+# ------------------------------
+# Build / Packaging
+# ------------------------------
+build/
+dist/
+*.egg
+MANIFEST
+
+# ------------------------------
+# CADLib 可能生成的文件
+# ------------------------------
+outputs/
+cad_output/
+*.step
+*.iges
+*.stl
+
+# ------------------------------
+# Temporary files / 临时文件
+# ------------------------------
+tmp/
+temp/
+*.tmp
+*.bak
+
+# ------------------------------
+# Plotting / Matplotlib 缓存
+# ------------------------------
+*.png
+*.svg
