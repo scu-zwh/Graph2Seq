@@ -4,7 +4,7 @@ Parameters shared between different modules
 Date:
     - Jan. 28, 2023
 """
-PAD_IDX = 262  # from params or data module
+# PAD_IDX = 262  # from params or data module
 MAX_LENGTH = 64
 SOS_token = 260
 EOS_token = 259

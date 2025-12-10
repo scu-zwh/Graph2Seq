@@ -17,6 +17,40 @@ from OCC.Core.TopExp import TopExp_Explorer
 from OCC.Core.TopAbs import TopAbs_FACE, TopAbs_EDGE
 from occwl.graph import face_adjacency
 
+def save_solid_as_step(solid, filename):
+    if solid.IsNull():
+        print("solid 对象无效！")
+        return
+    
+    step_writer = STEPControl_Writer()
+    step_writer.Transfer(solid, STEPControl_AsIs)
+    status = step_writer.Write(filename)
+    
+    if status == 1:  # 1 表示成功
+        print("STEP 文件保存成功：", filename)
+    else:
+        print("STEP 文件保存失败！")
+
+def save_steps(vec, path):
+    os.makedirs(path, exist_ok=True)
+    
+    bs, length = vec.shape
+    for i in range(bs):
+        item = vec[i]
+        
+        item = cut_at_eos(item, EOS_IDX, PAD_IDX)
+        
+        mat = vector_to_matrix(item)
+        if mat is None:
+            continue
+        try:
+            cad = CADSequence.from_vector(mat, is_numerical=True, n=256)
+            cad3d = create_CAD(cad)
+        except:
+            continue
+        
+        save_solid_as_step(cad3d, path + f'/{i}.step')
+
 def count_faces_edges(solid: Solid):
     graph = face_adjacency(solid)
     num_faces = len(graph.nodes)
@@ -202,6 +236,17 @@ def get_output_sv(samples):
         output_sv.append([area, vol])  
     return output_sv, valid_count
 
+def cut_at_eos(seq, eos_idx, pad_idx):
+    # seq: [T]
+    out = []
+    for t in seq:
+        out.append(t)
+        if t == eos_idx:
+            break
+    # 把后面全 PAD
+    if len(out) < len(seq):
+        out = out + [pad_idx] * (len(seq) - len(out))
+    return np.array(out)
 
 def get_output_metrics(samples: torch.Tensor):
     mat_np: np.ndarray = samples.cpu().to(torch.int32).numpy()   # (B, L)
@@ -210,6 +255,7 @@ def get_output_metrics(samples: torch.Tensor):
 
     for output_vec in mat_np:
         try:
+            output_vec = cut_at_eos(output_vec, EOS_IDX, PAD_IDX)
             mat   = vector_to_matrix(output_vec)
             cad   = CADSequence.from_vector(mat, is_numerical=True, n=256)
             shape = create_CAD(cad)                  # TopoDS_Shape

@@ -1,0 +1,168 @@
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 19, all_count = 5208
+Valid p: 0.0036
+MSE: 2.0743
+Column 0 → Pearson r = -0.3721 | MSE = 12.2657 | MAE = 1.8891
+Column 1 → Pearson r = -0.1647 | MSE = 0.0182 | MAE = 0.0780
+Column 2 Accuracy = 0.9474
+Column 3 Accuracy = 1.0000
+Column 4 Accuracy = 1.0000
+Column 5 Accuracy = 1.0000
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 22, all_count = 5208
+Valid p: 0.0042
+MSE: 1.4849
+Column 0 → Pearson r = 0.4831 | MSE = 7.4660 | MAE = 1.5112
+Column 1 → Pearson r = 0.8157 | MSE = 0.0125 | MAE = 0.0723
+Column 2 Accuracy = 0.8636
+Column 3 Accuracy = 1.0000
+Column 4 Accuracy = 0.8571
+Column 5 Accuracy = 1.0000
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 18, all_count = 5208
+Valid p: 0.0035
+MSE: 9.8125
+Column 0 → Pearson r = 0.2300 | MSE = 56.3604 | MAE = 3.0032
+Column 1 → Pearson r = 0.0461 | MSE = 0.1917 | MAE = 0.1575
+Column 2 Accuracy = 0.8889
+Column 3 Accuracy = 0.9444
+Column 4 Accuracy = 0.8824
+Column 5 Accuracy = 0.9444
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 19, all_count = 5208
+Valid p: 0.0036
+MSE: 0.4264
+Column 0 → Pearson r = 0.6632 | MSE = 2.4806 | MAE = 1.0134
+Column 1 → Pearson r = 0.8646 | MSE = 0.0105 | MAE = 0.0627
+Column 2 Accuracy = 1.0000
+Column 3 Accuracy = 1.0000
+Column 4 Accuracy = 1.0000
+Column 5 Accuracy = 1.0000
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 14, all_count = 5208
+Valid p: 0.0027
+MSE: 0.2870
+Column 0 → Pearson r = 0.3237 | MSE = 1.7182 | MAE = 0.9420
+Column 1 → Pearson r = 0.4589 | MSE = 0.0039 | MAE = 0.0405
+Column 2 Accuracy = 1.0000
+Column 3 Accuracy = 1.0000
+Column 4 Accuracy = 1.0000
+Column 5 Accuracy = 1.0000
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 15, all_count = 5208
+Valid p: 0.0029
+MSE: 0.7677
+Column 0 → Pearson r = 0.0838 | MSE = 3.6971 | MAE = 1.1128
+Column 1 → Pearson r = -0.0178 | MSE = 0.0067 | MAE = 0.0500
+Column 2 Accuracy = 0.9333
+Column 3 Accuracy = 0.8667
+Column 4 Accuracy = 0.9231
+Column 5 Accuracy = 0.8667
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 16, all_count = 5208
+Valid p: 0.0031
+MSE: 3.2937
+Column 0 → Pearson r = -0.4692 | MSE = 19.1001 | MAE = 2.4895
+Column 1 → Pearson r = -0.3783 | MSE = 0.0187 | MAE = 0.0894
+Column 2 Accuracy = 1.0000
+Column 3 Accuracy = 0.9375
+Column 4 Accuracy = 0.8667
+Column 5 Accuracy = 0.9375
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 15, all_count = 5208
+Valid p: 0.0029
+MSE: 6.9278
+Column 0 → Pearson r = 0.0628 | MSE = 40.5517 | MAE = 3.3710
+Column 1 → Pearson r = -0.0436 | MSE = 0.1485 | MAE = 0.1831
+Column 2 Accuracy = 1.0000
+Column 3 Accuracy = 0.8667
+Column 4 Accuracy = 0.8000
+Column 5 Accuracy = 0.8667
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 16, all_count = 5208
+Valid p: 0.0031
+MSE: 1.8472
+Column 0 → Pearson r = -0.3877 | MSE = 8.0667 | MAE = 1.6884
+Column 1 → Pearson r = -0.3533 | MSE = 0.0259 | MAE = 0.0874
+Column 2 Accuracy = 0.9375
+Column 3 Accuracy = 0.9375
+Column 4 Accuracy = 0.8667
+Column 5 Accuracy = 0.9375
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 22, all_count = 5120
+Valid p: 0.0043
+MSE: 3.6639
+Column 0 → Pearson r = 0.0552 | MSE = 19.0874 | MAE = 1.3471
+Column 1 → Pearson r = 0.2230 | MSE = 0.0177 | MAE = 0.0547
+Column 2 Accuracy = 0.9091
+Column 3 Accuracy = 0.9545
+Column 4 Accuracy = 0.8500
+Column 5 Accuracy = 0.9545
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 49, all_count = 5120
+Valid p: 0.0096
+MSE: 1.1716
+Column 0 → Pearson r = 0.4779 | MSE = 6.4882 | MAE = 0.7430
+Column 1 → Pearson r = 0.7973 | MSE = 0.0110 | MAE = 0.0412
+Column 2 Accuracy = 0.9592
+Column 3 Accuracy = 0.9796
+Column 4 Accuracy = 0.9388
+Column 5 Accuracy = 0.9796
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 46, all_count = 5120
+Valid p: 0.0090
+MSE: 0.0004
+Column 0 → Pearson r = 0.9991 | MSE = 0.0025 | MAE = 0.0211
+Column 1 → Pearson r = 0.9977 | MSE = 0.0000 | MAE = 0.0015
+Column 2 Accuracy = 1.0000
+Column 3 Accuracy = 1.0000
+Column 4 Accuracy = 1.0000
+Column 5 Accuracy = 1.0000
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 5120, all_count = 5120
+Valid p: 1.0000
+MSE: 0.4728
+Column 0 → Pearson r = 0.9948 | MSE = 0.0343 | MAE = 0.0474
+Column 1 → Pearson r = 0.9849 | MSE = 0.0016 | MAE = 0.0072
+Column 2 Accuracy = 0.9801
+Column 3 Accuracy = 0.9805
+Column 4 Accuracy = 0.9799
+Column 5 Accuracy = 0.9803
+------------------------------
+BFN Sample Results:
+------------------------------
+epoch_valid_ok = 5144, all_count = 5208
+Valid p: 0.9877
+MSE: 4.0599
+Column 0 → Pearson r = 0.9383 | MSE = 0.4108 | MAE = 0.3414
+Column 1 → Pearson r = 0.8618 | MSE = 0.0141 | MAE = 0.0447
+Column 2 Accuracy = 0.7687
+Column 3 Accuracy = 0.8509
+Column 4 Accuracy = 0.7528
+Column 5 Accuracy = 0.8499
+------------------------------

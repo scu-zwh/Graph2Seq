@@ -1,10 +1,11 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+os.environ['CUDA_VISIBLE_DEVICES'] = '6'
 
 import torch
 import torch.nn.functional as F
 import numpy as np
 
+from cadlib.macro import SOL_IDX, PAD_IDX, EOS_IDX
 from params import *
 from graph_encoders import GNN
 from attention_decoder import Graph2SeqTransformer
@@ -87,7 +88,7 @@ def main():
     # ====== wandb 初始化 ======
     wandb.init(
         project="Graph2Seq-CAD",     
-        name="gnn_transformer_run3",   
+        name="gnn_transformer_run4",   
         config={
             "lr": args.lr,
             "epochs": args.epochs,
@@ -98,7 +99,7 @@ def main():
         }
     )
 
-    save_dir = "./checkpoints/scheduler"
+    save_dir = "./checkpoints/scheduler1_ls"
     os.makedirs(save_dir, exist_ok=True)
 
     # graph encoder
@@ -142,7 +143,7 @@ def main():
     )
 
     # criterion
-    criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_IDX, label_smoothing=0.1)
+    criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD_IDX, label_smoothing=0.0)
     
     # ========= 打印参数量 =========
     total_params = sum(p.numel() for p in model.parameters())

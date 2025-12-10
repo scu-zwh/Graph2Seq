@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from torch_geometric.data import InMemoryDataset, Data
 from torch_geometric.loader import DataLoader
 
-from data_proc.abstract_dataset import AbstractDataModule, AbstractDatasetInfos
+from data_proc.abstract_dataset import AbstractDataModule
 
 def matrix_to_vector(matrix):
     flattened_array = matrix.flatten()
@@ -29,7 +29,7 @@ class CADGraphDataset(InMemoryDataset):
         self.seq_len = 64  # CAD 序列长度上限
         
         super().__init__(root, transform, pre_transform, pre_filter)
-        self.data, self.slices = torch.load(self.processed_paths[0])
+        self.data, self.slices = torch.load(self.processed_paths[0], weights_only=False)
 
     @property
     def raw_file_names(self):
@@ -203,82 +203,3 @@ class CADGraphDataModule(AbstractDataModule):
 
         return hist
 
-
-class CADinfos(AbstractDatasetInfos):
-    def __init__(self, datamodule, cfg, recompute_statistics=False, meta=None):
-        self.name = 'cad'
-        self.atom_decoder = ['LINE', 'ARC', 'CIRCLE']
-        self.atom_encoder = {t: i for i, t in enumerate(self.atom_decoder)}
-        self.num_atom_types = 3
-        
-        # self.geom_mean, self.geom_mean = datamodule.geom_statistics()
-        # print(f"CAD 节点几何特征 mean: {self.geom_mean}")
-        # print(f"CAD 节点几何特征 std: {self.geom_std}")
-        
-        self.geom_mean = torch.tensor([0.0514, -0.0298, 0.0908, 0.0611, -0.0821, 0.1319, 0.0033, -0.0050, 0.0153])
-        self.geom_std = torch.tensor([0.4446, 0.3368, 0.3079, 0.4530, 0.3793, 0.3330, 0.1340, 0.1325, 0.1170])
-
-        self.edge_density = torch.tensor(0.000459950853837654)
-
-        self.n_nodes = torch.tensor([0.0000, 0.0000, 0.0000, 0.1163, 0.0000, 0.0000, 0.1085, 0.0000, 0.0000,
-                                    0.0186, 0.0000, 0.0000, 0.1882, 0.0000, 0.0000, 0.0799, 0.0000, 0.0000,
-                                    0.1399, 0.0000, 0.0000, 0.0426, 0.0000, 0.0000, 0.1653, 0.0000, 0.0000,
-                                    0.0308, 0.0000, 0.0000, 0.0351, 0.0000, 0.0000, 0.0145, 0.0000, 0.0000,
-                                    0.0416, 0.0000, 0.0000, 0.0070, 0.0000, 0.0000, 0.0095, 0.0000, 0.0000,
-                                    0.0005, 0.0000, 0.0000, 0.0017])
-        self.max_n_nodes = len(self.n_nodes) - 1
-
-        self.node_types = datamodule.node_types()                                     # There are no node types
-        print("Distribution of node types", self.node_types)
-        self.node_types = torch.tensor([0.8556, 0.0583, 0.0861])
-        # self.node_types = torch.tensor([0.8556, 0.1444, 0.0000])
-
-        # edge type 也通常只有 1 种（邻接）
-        self.edge_types = torch.tensor([0.8263, 0.1737])
-
-        # valency(节点度) 分布
-        self.valency_distribution = torch.tensor([0.0000, 0.0861, 0.0430, 0.0020, 0.8688, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000,
-                                                0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000])
-
-        # ---------------------------
-        # Finalize initialization
-        # ---------------------------
-        super().complete_infos(n_nodes=self.n_nodes, node_types=self.node_types)
-        
-        
-def get_train_graph_signatures(cfg, train_dataloader, dataset_infos):
-    """
-    Returns a set of signatures of all training CAD graphs.
-    用于 Novelty Metric：生成的 CAD 图是否不在训练集出现过。
-    """
-
-    from analysis.cad_utils import BasicCADMetrics  # 你需要根据文件路径调整导入
-    cad_metrics = BasicCADMetrics(
-        dataset_infos=dataset_infos  # ["SPLINE","ARC","LINE"]
-    )
-
-    signatures = set()
-
-    for batch in train_dataloader:
-        # batch 是 PyG Batch，可拆为 Data list
-        data_list = batch.to_data_list()
-
-        for g in data_list:
-            sig = cad_metrics.make_signature(g.x)
-            signatures.add(sig)
-
-    return signatures

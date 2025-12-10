@@ -16,8 +16,31 @@ from data_proc import cad_dataset
 from main import get_args
 from scipy.stats import pearsonr
 from sklearn.metrics import mean_squared_error, mean_absolute_error
+from cadlib.macro import SOL_IDX, PAD_IDX, EOS_IDX
 
 log_file = open("out.txt", "a", encoding="utf-8") 
+
+@torch.no_grad()
+def greedy_decode(model, batch, bos_idx, eos_idx, max_len, device):
+    model.eval()
+
+    # 假设 batch.idx 是 [B]
+    B = batch.idx.size(0)
+
+    # 初始输入：全 BOS
+    y = torch.full((B, 1), bos_idx, dtype=torch.long, device=device)  # [B, 1]
+
+    for _ in range(max_len - 1):
+        # 调用你的 Graph2SeqTransformer
+        logits = model(batch, y)   # [T, B, vocab]
+        last_logits = logits[-1]   # [B, vocab] 只看最后一步
+
+        next_tok = last_logits.argmax(dim=-1)  # [B]
+        next_tok = next_tok.unsqueeze(1)       # [B, 1]
+
+        y = torch.cat([y, next_tok], dim=1)    # [B, t+1]
+
+    return y  # [B, <=max_len]
 
 def log(*args, **kwargs):
     print(*args, **kwargs)                    
@@ -31,19 +54,6 @@ def sample():
     
     # ====================================================================================
     # ===================================== Data Loading & Processing
-    """
-    Assumption on Data Processing:
-        1. Data contains three splits (i.e., train, validation, & test) covering the whole datasets
-        2. Each data split (i.e., train, validation, & test) consists of a list of pairs (graph, sentence).
-           The length of the list specifies the number of instances in the split. 
-           Each instance corresponds to one 'graph (of a SQL query)' that maps to one 'interpretation'.
-        3. There should be a 'graph_lang' (~input_lang) that maps each node of the graph to its node id.
-        4. There should be a 'output_lang' that maps each word in a sentence to its corresponding id.
-        5. 'graph': it includes the input graph in the convention format accepted by PyTorch Geometric.
-                    The node ids comes from 'graph_lang'.
-        6. 'sentence': this is a English sentence. The word ids come from 'output_lang'.
-    """
-
     datamodule = cad_dataset.CADGraphDataModule(args)
     
     data_train, data_val, data_test = datamodule.train_dataloader(), datamodule.val_dataloader(), datamodule.test_dataloader()
@@ -75,7 +85,7 @@ def sample():
     )
     
     # ============ load checkpoint ======================================================
-    checkpoint_path = "./checkpoints/scheduler/best_model.pt"
+    checkpoint_path = "checkpoints/scheduler1_ls/best_model.pt"
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
     model.to(device)
@@ -97,38 +107,47 @@ def sample():
     
     all_gt = []
     all_pred = []
+    all_cad_pred = []
+    all_cad_gt = []
 
-    for idx, batch in tqdm(enumerate(data_test)):
+    for idx, batch in enumerate(tqdm(data_test)):
         batch = batch.to(device)
 
-        B = batch.idx.size(0)
-        seq_len = batch.y.size(0) // B
+        B = batch.idx.size(0) 
+        seq_len = batch.y.size(0) // B 
         y = batch.y.view(B, seq_len).long()
 
-        y_in  = y[:, :-1]
-        y_out = y[:, 1:]
-
-        logits = model(batch, y_in)
-        Tm1, B_, V = logits.shape
-        logits = logits.view(-1, V)
+        # 自回归生成
+        y_pred = greedy_decode(
+            model=model,
+            batch=batch,
+            bos_idx=SOL_IDX,
+            eos_idx=EOS_IDX,
+            max_len=MAX_LENGTH,
+            device=device
+        )  # [B, T_gen]    
         
-        y_pred = torch.argmax(logits, dim=-1)
-        y_out  = y_out.transpose(0, 1).contiguous().view(-1)
-
-        # 将SOL拼接回来
-        SOL_IDX = 260
-        y_pred = torch.cat(
-            [torch.full((B_,), SOL_IDX, dtype=torch.long, device=device), y_pred],
-            dim=0
-        )
-        y_out = torch.cat( 
-            [torch.full((B_,), SOL_IDX, dtype=torch.long, device=device), y_out],
-            dim=0
-        )
-        
+        # with torch.no_grad():
+        #     mask = (y != PAD_IDX)
+        #     correct = (y_pred == y[:, :y_pred.shape[-1]]) & mask
+        #     token_acc = correct.sum().item() / mask.sum().item()
+        #     print(y_pred[0])
+        #     print(y[0])
+        #     print(f"Batch {idx} Token Acc: {token_acc:.4f}")
+        #     exit(0)
+    
         
         metrics, valid_count = get_output_metrics(y_pred)
-        r_metrics, r_valid_count = get_output_metrics(y_out)
+        r_metrics, r_valid_count = get_output_metrics(y)
+        
+        if valid_count:
+            # 根据metrics找到valid的idx，已知metrics shape (B, 6)
+            valid_idxs = [i for i in range(B) if not (metrics[i][0] == -1 and metrics[i][1] == -1)]
+            cad_pred = y_pred[valid_idxs]
+            cad_gt   = y[valid_idxs]          
+            all_cad_pred.append(cad_pred)
+            all_cad_gt.append(cad_gt)  
+            
 
         epoch_valid_ok   += valid_count
         epoch_valid_all  += r_valid_count
@@ -147,6 +166,15 @@ def sample():
 
     all_gt = torch.cat(all_gt, dim=0).cpu().numpy()
     all_pred = torch.cat(all_pred, dim=0).cpu().numpy()       
+    
+    all_cad_gt = torch.cat(all_cad_gt, dim=0).cpu()
+    all_cad_pred = torch.cat(all_cad_pred, dim=0).cpu()    
+    print(all_cad_gt.shape, all_cad_pred.shape)
+    # 保存 CAD 结果
+    torch.save({
+        "cad_gt": all_cad_gt,
+        "cad_pred": all_cad_pred    
+    }, "cad_results.pt")
 
     if epoch_mse_count:
         avg_mse  = epoch_mse_sum / epoch_mse_count
