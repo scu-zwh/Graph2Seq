@@ -14,7 +14,7 @@ teacher_forcing_ratio = 0.5
 
 
 # data-related parameters
-num_node_init_feats = 12
+num_node_init_feats = 12 + 64
 num_layer_dec = 1
 
 # output paths

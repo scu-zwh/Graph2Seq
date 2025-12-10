@@ -25,6 +25,127 @@ from torch_geometric.nn import (
     JumpingKnowledge,
 )
 
+def node_render(X):
+    """
+    X: (n, d)
+    first 3 dims = one-hot node type
+    P0 = X[..., 3:6]
+    P1 = X[..., 6:9]
+    C  = X[..., 9:12]
+    output: (n, 100, 3)
+    """
+    device = X.device
+    n, _ = X.shape
+    num_points = 100
+
+    # node type = [LINE, ARC, CIRCLE]
+    node_types = X[..., 0]     # (n)
+
+    # geometry
+    P0 = X[..., 3:6]          # (n, 3)
+    P1 = X[..., 6:9]          # (n, 3)
+    C  = X[..., 9:12]         # (n, 3)
+
+    # output
+    X_render = torch.zeros((n, num_points, 3), device=device)
+
+    # t for line interpolation
+    t = torch.linspace(0, 1, num_points, device=device)           # (100,)
+    t = t.view(1, num_points, 1)                               # (1,100,1)
+
+    # =========================
+    # LINE
+    # =========================
+    mask_line = (node_types == 0).view(n, 1, 1)               # (n,1,1)
+    if mask_line.any():
+        P0e = P0.unsqueeze(1)                                     # (n,1,3)
+        P1e = P1.unsqueeze(1)                                     # (n,1,3)
+        line_points = P0e + t * (P1e - P0e)                       # (n,100,3)
+        X_render = X_render.where(~mask_line, line_points)
+
+    # =========================
+    # ARC
+    # =========================
+    mask_arc = (node_types == 1).view(n, 1, 1)
+    if mask_arc.any():
+        vec0 = P0 - C                                             # (n,3)
+        vec1 = P1 - C
+        angle0 = torch.atan2(vec0[..., 1], vec0[..., 0])            # (n)
+        angle1 = torch.atan2(vec1[..., 1], vec1[..., 0])
+        angle1 = angle1 + (angle1 < angle0) * (2 * torch.pi)
+
+        # expand to (n, 100)
+        angles = angle0.unsqueeze(-1) + t.squeeze(-1) * (angle1 - angle0).unsqueeze(-1)
+
+        r = torch.norm(vec0, dim=-1).unsqueeze(-1).unsqueeze(-1)  # (n,1,1)
+        Ce = C.unsqueeze(1)  # (n,1,3)
+
+        arc_points = torch.cat([
+            (Ce[..., 0:1] + torch.cos(angles).unsqueeze(-1) * r),
+            (Ce[..., 1:2] + torch.sin(angles).unsqueeze(-1) * r),
+            Ce[..., 2:3].expand(n, num_points, 1)
+        ], dim=-1)
+
+        X_render = X_render.where(~mask_arc, arc_points)
+
+    # =========================
+    # CIRCLE
+    # =========================
+    mask_circle = (node_types == 2).view(n, 1, 1)
+    if mask_circle.any():
+        # angles must be (n,100)
+        base_angles = torch.linspace(0, 2 * torch.pi, num_points, device=device)   # (100,)
+        base_angles = base_angles.view(1, num_points).expand(n, num_points)
+
+        r = torch.norm(P0 - C, dim=-1).unsqueeze(-1)          # (n,1)
+        Ce = C.unsqueeze(1)                                    # (n,1,3)
+
+        circle_points = torch.cat([
+            Ce[..., 0:1] + torch.cos(base_angles).unsqueeze(-1) * r.unsqueeze(-1),
+            Ce[..., 1:2] + torch.sin(base_angles).unsqueeze(-1) * r.unsqueeze(-1),
+            Ce[..., 2:3].expand(n, num_points, 1)
+        ], dim=-1)
+
+        X_render = X_render.where(~mask_circle, circle_points)
+
+    return X_render
+
+
+class CNNEncoder(nn.Module):
+    def __init__(self, output_dim):
+        super(CNNEncoder, self).__init__()
+
+        # 输入: (bs*n, 100, 3)  → reshape → (bs*n, 3, 100)
+        self.conv1 = nn.Conv1d(3, 32, kernel_size=5, padding=2)
+        self.conv2 = nn.Conv1d(32, 64, kernel_size=5, padding=2)
+        self.conv3 = nn.Conv1d(64, 128, kernel_size=5, padding=2)
+
+        self.fc = nn.Linear(128, output_dim)
+
+    def forward(self, x):
+        """
+        x: [n, 100, 3]
+        return: [n, output_dim]
+        """
+        n, point_num, _ = x.shape
+
+        # Reshape for CNN
+        x = x.permute(0, 2, 1)                # (bs*n, 3, 100)
+
+        # Conv1D blocks
+        x = F.relu(self.conv1(x))             # (bs*n, 32, 100)
+        x = F.relu(self.conv2(x))             # (bs*n, 64, 100)
+        x = F.relu(self.conv3(x))             # (bs*n, 128, 100)
+
+        # Global max pooling over points
+        x = torch.max(x, dim=-1)[0]           # (bs*n, 128)
+
+        # FC to output_dim
+        x = self.fc(x)                        # (bs*n, output_dim)
+        
+        return x
+
+
 class GNN(nn.Module):
     def __init__(self,
                  in_channels,
@@ -71,8 +192,14 @@ class GNN(nn.Module):
 
         self.convs = nn.ModuleList(convs)
         self.norms = nn.ModuleList(norms)
+        
+        self.point_encoder = CNNEncoder(output_dim=64)
 
     def forward(self, x, edge_index, batch_vec, edge_weight=None):
+        x_render = node_render(x)
+        x_encoding = self.point_encoder(x_render)
+        x = torch.cat([x, x_encoding], dim=-1).float()
+        
         h = x
         for conv, norm in zip(self.convs, self.norms):
             h_in = h

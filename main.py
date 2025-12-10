@@ -1,5 +1,5 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '6'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 import torch
 import torch.nn.functional as F
@@ -88,7 +88,7 @@ def main():
     # ====== wandb 初始化 ======
     wandb.init(
         project="Graph2Seq-CAD",     
-        name="gnn_transformer_run4",   
+        name="run_render",   
         config={
             "lr": args.lr,
             "epochs": args.epochs,
@@ -99,7 +99,7 @@ def main():
         }
     )
 
-    save_dir = "./checkpoints/scheduler1_ls"
+    save_dir = "./checkpoints/scheduler_render"
     os.makedirs(save_dir, exist_ok=True)
 
     # graph encoder
